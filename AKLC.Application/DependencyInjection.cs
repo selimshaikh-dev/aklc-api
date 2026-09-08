@@ -1,0 +1,93 @@
+﻿using AKLC.Application.Interfaces;
+using AKLC.Application.Services;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace AKLC.Application
+{
+    public static class DependencyInjection
+    {
+        public static IServiceCollection AddApplication(
+            this IServiceCollection services)
+        {
+            // =========================================
+            // STUDENT SERVICE
+            // =========================================
+
+            services.AddScoped<
+                IStudentService,
+                StudentService>();
+
+
+            // =========================================
+            // STUDENT FEE ASSIGNMENT SERVICE
+            // =========================================
+
+            services.AddScoped<
+                IStudentFeeAssignmentService,
+                StudentFeeAssignmentService>();
+
+
+            // =========================================
+            // STUDENT PAYMENT SERVICE
+            // =========================================
+
+            services.AddScoped<
+                IStudentPaymentService,
+                StudentPaymentService>();
+
+
+            // =========================================
+            // ACCOUNT HEAD SERVICE
+            // =========================================
+
+            services.AddScoped<
+                IAccountHeadService,
+                AccountHeadService>();
+
+
+            // =========================================
+            // INCOME TRANSACTION SERVICE
+            // =========================================
+
+            services.AddScoped<
+                IIncomeTransactionService,
+                IncomeTransactionService>();
+
+
+            // =========================================
+            // EXPENSE TRANSACTION SERVICE
+            // =========================================
+
+            services.AddScoped<
+                IExpenseTransactionService,
+                ExpenseTransactionService>();
+
+            // =========================================
+            // PAYMENT SCHEDULE SERVICE
+            // =========================================
+
+            services.AddScoped<
+                IPaymentScheduleService,
+                PaymentScheduleService>();
+
+            // =========================================
+            // PAYMENT ALLOCATION SERVICE
+            // =========================================
+
+            services.AddScoped<
+                IPaymentAllocationService,
+                PaymentAllocationService>();
+
+            // =========================================
+            // ACCOUNT REPORT SERVICE
+            // =========================================
+
+            services.AddScoped<
+                IAccountReportService,
+                AccountReportService>();
+
+
+            return services;
+        }
+    }
+}

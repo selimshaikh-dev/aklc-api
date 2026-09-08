@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="AKLC.Api/AKLC.Api.csproj" />
+  <Project Path="AKLC.Application/AKLC.Application.csproj" />
+  <Project Path="AKLC.Domain/AKLC.Domain.csproj" />
+  <Project Path="AKLC.Infrastructure/AKLC.Infrastructure.csproj" />
+</Solution>
