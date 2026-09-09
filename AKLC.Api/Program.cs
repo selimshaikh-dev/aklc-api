@@ -1,9 +1,11 @@
 using AKLC.Application;
 using AKLC.Infrastructure;
 using AKLC.Infrastructure.Identity;
+using AKLC.Infrastructure.Persistence;
 using AKLC.Infrastructure.Persistence.Seed;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -100,15 +102,8 @@ builder.Services
         options.SaveToken =
             true;
 
-
-        // Development:
-        // false allows local HTTPS/dev certificate usage.
-        //
-        // Production:
-        // true ensures HTTPS metadata requirement.
         options.RequireHttpsMetadata =
             !builder.Environment.IsDevelopment();
-
 
         options.TokenValidationParameters =
             new TokenValidationParameters
@@ -161,7 +156,9 @@ builder.Services.AddCors(options =>
         {
             policy
                 .WithOrigins(
-                    "http://localhost:4200")
+                    "http://localhost:4200",
+                    "https://aklcacademy.com.bd",
+                    "https://www.aklcacademy.com.bd")
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
@@ -242,7 +239,15 @@ var app =
 
 
 // =========================================================
-// DATABASE SEED
+// DATABASE MIGRATION + SEED
+// =========================================================
+// Startup order:
+// 1. Connect to database
+// 2. Apply pending EF Core migrations automatically
+// 3. Seed the default administrator
+//
+// No manual "dotnet ef database update" is required
+// on the IIS server.
 // =========================================================
 
 using (
@@ -250,10 +255,22 @@ using (
         app.Services.CreateScope()
 )
 {
+    var services =
+        scope.ServiceProvider;
+
+
+    var dbContext =
+        services.GetRequiredService<
+            ApplicationDbContext>();
+
+
+    await dbContext.Database
+        .MigrateAsync();
+
+
     var adminSeeder =
-        scope.ServiceProvider
-            .GetRequiredService<
-                AdminSeeder>();
+        services.GetRequiredService<
+            AdminSeeder>();
 
 
     await adminSeeder
@@ -319,8 +336,6 @@ app.UseCors(
 
 // =========================================================
 // AUTHENTICATION
-// =========================================================
-// Must come before Authorization.
 // =========================================================
 
 app.UseAuthentication();
