@@ -16,15 +16,17 @@ namespace AKLC.Domain.Entities
 
         public string? GuardianMobile { get; set; }
 
+        public string? EmergencyMobileNumber { get; set; }
+
         public DateOnly? DateOfBirth { get; set; }
 
         public string? Gender { get; set; }
 
+        public string? NidNumber { get; set; }
+
         public string? Address { get; set; }
 
-        public Guid CourseId { get; set; }
-
-        public Guid BatchId { get; set; }
+        public bool IsBelowSsc { get; set; } = false;
 
         public DateTime AdmissionDate { get; set; }
 
@@ -34,10 +36,30 @@ namespace AKLC.Domain.Entities
 
         public bool IsDeleted { get; set; } = false;
 
-        // Navigation
-        public Course Course { get; set; } = null!;
 
-        public Batch Batch { get; set; } = null!;
+        // =========================================
+        // STUDENT PROFILE RELATIONSHIPS
+        // =========================================
+
+        public ICollection<StudentEducationQualification>
+            EducationQualifications
+        { get; set; }
+                = new List<StudentEducationQualification>();
+
+        public ICollection<StudentProfessionalExperience>
+            ProfessionalExperiences
+        { get; set; }
+                = new List<StudentProfessionalExperience>();
+
+        public ICollection<StudentLanguageProficiency>
+            LanguageProficiencies
+        { get; set; }
+                = new List<StudentLanguageProficiency>();
+
+
+        // =========================================
+        // FINANCIAL RELATIONSHIPS
+        // =========================================
 
         public ICollection<StudentFeeAssignment> FeeAssignments { get; set; }
             = new List<StudentFeeAssignment>();

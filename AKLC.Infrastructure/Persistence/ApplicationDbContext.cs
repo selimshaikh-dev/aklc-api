@@ -29,6 +29,15 @@ namespace AKLC.Infrastructure.Persistence
         public DbSet<Student> Students =>
             Set<Student>();
 
+        public DbSet<StudentEducationQualification> StudentEducationQualifications =>
+            Set<StudentEducationQualification>();
+
+        public DbSet<StudentProfessionalExperience> StudentProfessionalExperiences =>
+            Set<StudentProfessionalExperience>();
+
+        public DbSet<StudentLanguageProficiency> StudentLanguageProficiencies =>
+            Set<StudentLanguageProficiency>();
+
         public DbSet<Course> Courses =>
             Set<Course>();
 

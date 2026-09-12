@@ -2,7 +2,7 @@
 using AKLC.Application.DTOs.Students;
 using AKLC.Application.Interfaces;
 using AKLC.Domain.Constants;
-
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +19,9 @@ namespace AKLC.Api.Controllers
         private readonly IFileStorageService
             _fileStorageService;
 
+        private readonly IValidator<CreateStudentRequest>
+            _createStudentRequestValidator;
+
 
         // =========================================
         // CONSTRUCTOR
@@ -26,13 +29,17 @@ namespace AKLC.Api.Controllers
 
         public StudentsController(
             IStudentService studentService,
-            IFileStorageService fileStorageService)
+            IFileStorageService fileStorageService,
+            IValidator<CreateStudentRequest> createStudentRequestValidator)
         {
             _studentService =
                 studentService;
 
             _fileStorageService =
                 fileStorageService;
+
+            _createStudentRequestValidator =
+                createStudentRequestValidator;
         }
 
 
@@ -138,6 +145,201 @@ namespace AKLC.Api.Controllers
             try
             {
                 // =================================
+                // APPLICATION REQUEST
+                // =================================
+
+                var request =
+                    new CreateStudentRequest
+                    {
+                        // -------------------------
+                        // BASIC INFORMATION
+                        // -------------------------
+
+                        FullName =
+                            form.FullName,
+
+                        MobileNumber =
+                            form.MobileNumber,
+
+                        Email =
+                            form.Email,
+
+
+                        // -------------------------
+                        // GUARDIAN / CONTACT
+                        // -------------------------
+
+                        GuardianName =
+                            form.GuardianName,
+
+                        GuardianMobile =
+                            form.GuardianMobile,
+
+                        EmergencyMobileNumber =
+                            form.EmergencyMobileNumber,
+
+
+                        // -------------------------
+                        // PERSONAL INFORMATION
+                        // -------------------------
+
+                        DateOfBirth =
+                            form.DateOfBirth,
+
+                        Gender =
+                            form.Gender,
+
+                        NidNumber =
+                            form.NidNumber,
+
+                        Address =
+                            form.Address,
+
+
+                        // -------------------------
+                        // EDUCATION STATUS
+                        // -------------------------
+
+                        IsBelowSsc =
+                            form.IsBelowSsc,
+
+
+                        // -------------------------
+                        // ADMISSION INFORMATION
+                        // -------------------------
+
+                        AdmissionDate =
+                            form.AdmissionDate,
+
+                        IsActive =
+                            form.IsActive,
+
+
+                        // -------------------------
+                        // EDUCATION QUALIFICATIONS
+                        // -------------------------
+
+                        EducationQualifications =
+                            form.EducationQualifications
+                                .Select(item =>
+                                    new StudentEducationRequest
+                                    {
+                                        EducationLevel =
+                                            item.EducationLevel,
+
+                                        ExaminationName =
+                                            item.ExaminationName,
+
+                                        PassingYear =
+                                            item.PassingYear,
+
+                                        Result =
+                                            item.Result,
+
+                                        BoardOrUniversity =
+                                            item.BoardOrUniversity,
+
+                                        InstitutionName =
+                                            item.InstitutionName,
+
+                                        Remarks =
+                                            item.Remarks,
+
+                                        DisplayOrder =
+                                            item.DisplayOrder
+                                    })
+                                .ToList(),
+
+
+                        // -------------------------
+                        // PROFESSIONAL EXPERIENCES
+                        // -------------------------
+
+                        ProfessionalExperiences =
+                            form.ProfessionalExperiences
+                                .Select(item =>
+                                    new StudentProfessionalExperienceRequest
+                                    {
+                                        ExperienceTitle =
+                                            item.ExperienceTitle,
+
+                                        OrganizationName =
+                                            item.OrganizationName,
+
+                                        YearsOfExperience =
+                                            item.YearsOfExperience,
+
+                                        Remarks =
+                                            item.Remarks
+                                    })
+                                .ToList(),
+
+
+                        // -------------------------
+                        // LANGUAGE PROFICIENCIES
+                        // -------------------------
+
+                        LanguageProficiencies =
+                            form.LanguageProficiencies
+                                .Select(item =>
+                                    new StudentLanguageProficiencyRequest
+                                    {
+                                        LanguageName =
+                                            item.LanguageName,
+
+                                        ProficiencyLevel =
+                                            item.ProficiencyLevel,
+
+                                        InstitutionName =
+                                            item.InstitutionName,
+
+                                        Remarks =
+                                            item.Remarks
+                                    })
+                                .ToList()
+                    };
+
+
+                // =================================
+                // VALIDATE REQUEST
+                // =================================
+
+                var validationResult =
+                    await _createStudentRequestValidator
+                        .ValidateAsync(
+                            request,
+                            cancellationToken);
+
+                if (!validationResult.IsValid)
+                {
+                    var errors =
+                        validationResult.Errors
+                            .GroupBy(error =>
+                                error.PropertyName)
+                            .ToDictionary(
+                                group =>
+                                    group.Key,
+                                group =>
+                                    group
+                                        .Select(error =>
+                                            error.ErrorMessage)
+                                        .Distinct()
+                                        .ToArray());
+
+                    return ValidationProblem(
+                        new ValidationProblemDetails(
+                            errors)
+                        {
+                            Title =
+                                "Student validation failed.",
+
+                            Status =
+                                StatusCodes.Status400BadRequest
+                        });
+                }
+
+
+                // =================================
                 // STUDENT PHOTO
                 // =================================
 
@@ -154,52 +356,10 @@ namespace AKLC.Api.Controllers
                                 form.StudentPhoto.FileName,
                                 "uploads/students/photos",
                                 cancellationToken);
+
+                    request.PhotoPath =
+                        photoPath;
                 }
-
-
-                // =================================
-                // APPLICATION REQUEST
-                // =================================
-
-                var request =
-                    new CreateStudentRequest
-                    {
-                        FullName =
-                            form.FullName,
-
-                        MobileNumber =
-                            form.MobileNumber,
-
-                        GuardianName =
-                            form.GuardianName,
-
-                        GuardianMobile =
-                            form.GuardianMobile,
-
-                        Email =
-                            form.Email,
-
-                        Address =
-                            form.Address,
-
-                        DateOfBirth =
-                            form.DateOfBirth,
-
-                        Gender =
-                            form.Gender,
-
-                        AdmissionDate =
-                            form.AdmissionDate,
-
-                        CourseId =
-                            form.CourseId,
-
-                        BatchId =
-                            form.BatchId,
-
-                        PhotoPath =
-                            photoPath
-                    };
 
 
                 // =================================

@@ -1,5 +1,10 @@
-﻿using AKLC.Application.Interfaces;
+﻿using AKLC.Application.DTOs.Students;
+using AKLC.Application.Interfaces;
 using AKLC.Application.Services;
+using AKLC.Application.Validators;
+
+using FluentValidation;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AKLC.Application
@@ -25,6 +30,15 @@ namespace AKLC.Application
             services.AddScoped<
                 IStudentFeeAssignmentService,
                 StudentFeeAssignmentService>();
+
+
+            // =========================================
+            // FEE TYPE SERVICE
+            // =========================================
+
+            services.AddScoped<
+                IFeeTypeService,
+                FeeTypeService>();
 
 
             // =========================================
@@ -62,6 +76,7 @@ namespace AKLC.Application
                 IExpenseTransactionService,
                 ExpenseTransactionService>();
 
+
             // =========================================
             // PAYMENT SCHEDULE SERVICE
             // =========================================
@@ -69,6 +84,7 @@ namespace AKLC.Application
             services.AddScoped<
                 IPaymentScheduleService,
                 PaymentScheduleService>();
+
 
             // =========================================
             // PAYMENT ALLOCATION SERVICE
@@ -78,6 +94,7 @@ namespace AKLC.Application
                 IPaymentAllocationService,
                 PaymentAllocationService>();
 
+
             // =========================================
             // ACCOUNT REPORT SERVICE
             // =========================================
@@ -85,6 +102,27 @@ namespace AKLC.Application
             services.AddScoped<
                 IAccountReportService,
                 AccountReportService>();
+
+
+            // =========================================
+            // STUDENT VALIDATORS
+            // =========================================
+
+            services.AddScoped<
+                IValidator<CreateStudentRequest>,
+                CreateStudentRequestValidator>();
+
+            services.AddScoped<
+                IValidator<StudentEducationRequest>,
+                StudentEducationRequestValidator>();
+
+            services.AddScoped<
+                IValidator<StudentProfessionalExperienceRequest>,
+                StudentProfessionalExperienceRequestValidator>();
+
+            services.AddScoped<
+                IValidator<StudentLanguageProficiencyRequest>,
+                StudentLanguageProficiencyRequestValidator>();
 
 
             return services;

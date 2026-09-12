@@ -104,18 +104,6 @@ namespace AKLC.Application.Services
                     "Student mobile number is required.");
             }
 
-            if (request.CourseId == Guid.Empty)
-            {
-                throw new ArgumentException(
-                    "Course is required.");
-            }
-
-            if (request.BatchId == Guid.Empty)
-            {
-                throw new ArgumentException(
-                    "Batch is required.");
-            }
-
 
             // -------------------------------------
             // GENERATE STUDENT CODE
@@ -145,6 +133,10 @@ namespace AKLC.Application.Services
                     MobileNumber =
                         request.MobileNumber.Trim(),
 
+                    Email =
+                        Normalize(
+                            request.Email),
+
                     GuardianName =
                         Normalize(
                             request.GuardianName),
@@ -153,13 +145,9 @@ namespace AKLC.Application.Services
                         Normalize(
                             request.GuardianMobile),
 
-                    Email =
+                    EmergencyMobileNumber =
                         Normalize(
-                            request.Email),
-
-                    Address =
-                        Normalize(
-                            request.Address),
+                            request.EmergencyMobileNumber),
 
                     DateOfBirth =
                         request.DateOfBirth,
@@ -168,21 +156,26 @@ namespace AKLC.Application.Services
                         Normalize(
                             request.Gender),
 
+                    NidNumber =
+                        Normalize(
+                            request.NidNumber),
+
+                    Address =
+                        Normalize(
+                            request.Address),
+
+                    IsBelowSsc =
+                        request.IsBelowSsc,
+
                     AdmissionDate =
                         request.AdmissionDate,
-
-                    CourseId =
-                        request.CourseId,
-
-                    BatchId =
-                        request.BatchId,
 
                     PhotoPath =
                         Normalize(
                             request.PhotoPath),
 
                     IsActive =
-                        true,
+                        request.IsActive,
 
                     IsDeleted =
                         false,
@@ -190,6 +183,133 @@ namespace AKLC.Application.Services
                     CreatedAt =
                         DateTime.UtcNow
                 };
+
+
+            // =====================================
+            // EDUCATION QUALIFICATIONS
+            // =====================================
+
+            if (!request.IsBelowSsc)
+            {
+                foreach (var item in
+                    request.EducationQualifications)
+                {
+                    student.EducationQualifications.Add(
+                        new StudentEducationQualification
+                        {
+                            Id =
+                                Guid.NewGuid(),
+
+                            StudentId =
+                                student.Id,
+
+                            EducationLevel =
+                                item.EducationLevel,
+
+                            ExaminationName =
+                                Normalize(
+                                    item.ExaminationName),
+
+                            PassingYear =
+                                item.PassingYear,
+
+                            Result =
+                                Normalize(
+                                    item.Result),
+
+                            BoardOrUniversity =
+                                Normalize(
+                                    item.BoardOrUniversity),
+
+                            InstitutionName =
+                                Normalize(
+                                    item.InstitutionName),
+
+                            Remarks =
+                                Normalize(
+                                    item.Remarks),
+
+                            DisplayOrder =
+                                item.DisplayOrder,
+
+                            CreatedAt =
+                                DateTime.UtcNow
+                        });
+                }
+            }
+
+
+            // =====================================
+            // PROFESSIONAL EXPERIENCES
+            // =====================================
+
+            foreach (var item in
+                request.ProfessionalExperiences)
+            {
+                student.ProfessionalExperiences.Add(
+                    new StudentProfessionalExperience
+                    {
+                        Id =
+                            Guid.NewGuid(),
+
+                        StudentId =
+                            student.Id,
+
+                        ExperienceTitle =
+                            item.ExperienceTitle.Trim(),
+
+                        OrganizationName =
+                            Normalize(
+                                item.OrganizationName),
+
+                        YearsOfExperience =
+                            item.YearsOfExperience,
+
+                        Remarks =
+                            Normalize(
+                                item.Remarks),
+
+                        CreatedAt =
+                            DateTime.UtcNow
+                    });
+            }
+
+
+            // =====================================
+            // LANGUAGE PROFICIENCIES
+            // =====================================
+
+            foreach (var item in
+                request.LanguageProficiencies)
+            {
+                student.LanguageProficiencies.Add(
+                    new StudentLanguageProficiency
+                    {
+                        Id =
+                            Guid.NewGuid(),
+
+                        StudentId =
+                            student.Id,
+
+                        LanguageName =
+                            item.LanguageName.Trim(),
+
+                        ProficiencyLevel =
+                            Normalize(
+                                item.ProficiencyLevel),
+
+                        InstitutionName =
+                            Normalize(
+                                item.InstitutionName),
+
+                        Remarks =
+                            Normalize(
+                                item.Remarks),
+
+                        CreatedAt =
+                            DateTime.UtcNow
+                    });
+            }
 
 
             // -------------------------------------
@@ -602,16 +722,55 @@ namespace AKLC.Application.Services
             string paymentStatus;
 
 
-            if (balance > 0)
+            // -------------------------------------
+            // PAYMENT STATUS
+            //
+            // Professional status rules:
+            //
+            // 1. No fee + no payment
+            //    => No Fee Assigned
+            //
+            // 2. No fee + payment received
+            //    => Advance
+            //
+            // 3. Fee assigned + no payment
+            //    => Unpaid
+            //
+            // 4. Fee assigned + partial payment
+            //    => Partially Paid
+            //
+            // 5. Fee fully settled
+            //    => Paid
+            //
+            // 6. Payment exceeds liability
+            //    => Advance
+            // -------------------------------------
+
+            if (
+                totalPayable <= 0 &&
+                totalPaid <= 0)
             {
                 outstandingAmount =
-                    balance;
+                    0m;
 
                 advanceAmount =
                     0m;
 
                 paymentStatus =
-                    "Due";
+                    "No Fee Assigned";
+            }
+            else if (
+                totalPayable <= 0 &&
+                totalPaid > 0)
+            {
+                outstandingAmount =
+                    0m;
+
+                advanceAmount =
+                    totalPaid;
+
+                paymentStatus =
+                    "Advance";
             }
             else if (balance < 0)
             {
@@ -624,7 +783,7 @@ namespace AKLC.Application.Services
                 paymentStatus =
                     "Advance";
             }
-            else
+            else if (balance == 0)
             {
                 outstandingAmount =
                     0m;
@@ -634,6 +793,28 @@ namespace AKLC.Application.Services
 
                 paymentStatus =
                     "Paid";
+            }
+            else if (totalPaid <= 0)
+            {
+                outstandingAmount =
+                    balance;
+
+                advanceAmount =
+                    0m;
+
+                paymentStatus =
+                    "Unpaid";
+            }
+            else
+            {
+                outstandingAmount =
+                    balance;
+
+                advanceAmount =
+                    0m;
+
+                paymentStatus =
+                    "Partially Paid";
             }
 
 
@@ -982,17 +1163,17 @@ namespace AKLC.Application.Services
                 MobileNumber =
                     student.MobileNumber,
 
+                Email =
+                    student.Email,
+
                 GuardianName =
                     student.GuardianName,
 
                 GuardianMobile =
                     student.GuardianMobile,
 
-                Email =
-                    student.Email,
-
-                Address =
-                    student.Address,
+                EmergencyMobileNumber =
+                    student.EmergencyMobileNumber,
 
                 DateOfBirth =
                     student.DateOfBirth,
@@ -1000,28 +1181,105 @@ namespace AKLC.Application.Services
                 Gender =
                     student.Gender,
 
+                NidNumber =
+                    student.NidNumber,
+
+                Address =
+                    student.Address,
+
+                IsBelowSsc =
+                    student.IsBelowSsc,
+
                 AdmissionDate =
                     student.AdmissionDate,
-
-                CourseId =
-                    student.CourseId,
-
-                CourseName =
-                    student.Course?.Name
-                    ?? string.Empty,
-
-                BatchId =
-                    student.BatchId,
-
-                BatchName =
-                    student.Batch?.Name
-                    ?? string.Empty,
 
                 IsActive =
                     student.IsActive,
 
                 PhotoPath =
-                    student.PhotoPath
+                    student.PhotoPath,
+
+                EducationQualifications =
+                    student.EducationQualifications
+                        .OrderBy(x =>
+                            x.DisplayOrder)
+                        .ThenBy(x =>
+                            x.EducationLevel)
+                        .Select(x =>
+                            new StudentEducationDto
+                            {
+                                Id =
+                                    x.Id,
+
+                                EducationLevel =
+                                    x.EducationLevel,
+
+                                ExaminationName =
+                                    x.ExaminationName,
+
+                                PassingYear =
+                                    x.PassingYear,
+
+                                Result =
+                                    x.Result,
+
+                                BoardOrUniversity =
+                                    x.BoardOrUniversity,
+
+                                InstitutionName =
+                                    x.InstitutionName,
+
+                                Remarks =
+                                    x.Remarks,
+
+                                DisplayOrder =
+                                    x.DisplayOrder
+                            })
+                        .ToList(),
+
+                ProfessionalExperiences =
+                    student.ProfessionalExperiences
+                        .Select(x =>
+                            new StudentProfessionalExperienceDto
+                            {
+                                Id =
+                                    x.Id,
+
+                                ExperienceTitle =
+                                    x.ExperienceTitle,
+
+                                OrganizationName =
+                                    x.OrganizationName,
+
+                                YearsOfExperience =
+                                    x.YearsOfExperience,
+
+                                Remarks =
+                                    x.Remarks
+                            })
+                        .ToList(),
+
+                LanguageProficiencies =
+                    student.LanguageProficiencies
+                        .Select(x =>
+                            new StudentLanguageProficiencyDto
+                            {
+                                Id =
+                                    x.Id,
+
+                                LanguageName =
+                                    x.LanguageName,
+
+                                ProficiencyLevel =
+                                    x.ProficiencyLevel,
+
+                                InstitutionName =
+                                    x.InstitutionName,
+
+                                Remarks =
+                                    x.Remarks
+                            })
+                        .ToList()
             };
         }
 

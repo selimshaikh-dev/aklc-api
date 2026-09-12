@@ -59,24 +59,6 @@ namespace AKLC.Infrastructure.Persistence.Configurations
 
             builder.Property(x => x.PhotoPath)
                 .HasMaxLength(500);
-
-            // =========================================
-            // COURSE RELATIONSHIP
-            // =========================================
-
-            builder.HasOne(x => x.Course)
-                .WithMany(x => x.Students)
-                .HasForeignKey(x => x.CourseId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // =========================================
-            // BATCH RELATIONSHIP
-            // =========================================
-
-            builder.HasOne(x => x.Batch)
-                .WithMany(x => x.Students)
-                .HasForeignKey(x => x.BatchId)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

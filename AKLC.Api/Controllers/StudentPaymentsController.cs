@@ -131,7 +131,10 @@ namespace AKLC.Api.Controllers
                             form.ReferenceNumber,
 
                         Remarks =
-                            form.Remarks
+                            form.Remarks,
+
+                        NextPaymentDueDate =
+                            form.NextPaymentDueDate
                     };
 
                 foreach (var file in form.Attachments)

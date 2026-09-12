@@ -20,8 +20,5 @@ namespace AKLC.Domain.Entities
 
         // Navigation
         public Course Course { get; set; } = null!;
-
-        public ICollection<Student> Students { get; set; }
-            = new List<Student>();
     }
 }

@@ -18,9 +18,6 @@ namespace AKLC.Domain.Entities
         public ICollection<Batch> Batches { get; set; }
             = new List<Batch>();
 
-        public ICollection<Student> Students { get; set; }
-            = new List<Student>();
-
         public ICollection<CourseFeeStructure> FeeStructures { get; set; }
             = new List<CourseFeeStructure>();
     }

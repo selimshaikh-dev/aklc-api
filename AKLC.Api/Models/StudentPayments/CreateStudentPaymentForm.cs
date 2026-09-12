@@ -15,6 +15,14 @@
 
         public string? Remarks { get; set; }
 
+
+        // =========================================
+        // NEXT PAYMENT
+        // =========================================
+
+        public DateOnly? NextPaymentDueDate { get; set; }
+
+
         // Multiple payment proof files:
         // JPG, JPEG, PNG, WEBP, PDF
         public List<IFormFile> Attachments { get; set; }

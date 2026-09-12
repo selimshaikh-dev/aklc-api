@@ -31,8 +31,12 @@ namespace AKLC.Infrastructure.Repositories
         {
             return await _context.Students
                 .AsNoTracking()
-                .Include(student => student.Course)
-                .Include(student => student.Batch)
+                .Include(student =>
+                    student.EducationQualifications)
+                .Include(student =>
+                    student.ProfessionalExperiences)
+                .Include(student =>
+                    student.LanguageProficiencies)
                 .Where(student =>
                     !student.IsDeleted)
                 .OrderByDescending(student =>
@@ -53,8 +57,12 @@ namespace AKLC.Infrastructure.Repositories
         {
             return await _context.Students
                 .AsNoTracking()
-                .Include(student => student.Course)
-                .Include(student => student.Batch)
+                .Include(student =>
+                    student.EducationQualifications)
+                .Include(student =>
+                    student.ProfessionalExperiences)
+                .Include(student =>
+                    student.LanguageProficiencies)
                 .FirstOrDefaultAsync(
                     student =>
                         student.Id == id &&
@@ -73,6 +81,12 @@ namespace AKLC.Infrastructure.Repositories
             CancellationToken cancellationToken = default)
         {
             return await _context.Students
+                .Include(student =>
+                    student.EducationQualifications)
+                .Include(student =>
+                    student.ProfessionalExperiences)
+                .Include(student =>
+                    student.LanguageProficiencies)
                 .FirstOrDefaultAsync(
                     student =>
                         student.Id == id &&

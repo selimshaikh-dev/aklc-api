@@ -19,6 +19,9 @@ namespace AKLC.Application.Services
         private readonly IPaymentAllocationRepository
             _paymentAllocationRepository;
 
+        private readonly IStudentFeeAssignmentRepository
+            _studentFeeAssignmentRepository;
+
 
         // =========================================
         // CONSTRUCTOR
@@ -28,7 +31,8 @@ namespace AKLC.Application.Services
             IStudentPaymentRepository studentPaymentRepository,
             IStudentRepository studentRepository,
             IPaymentScheduleRepository paymentScheduleRepository,
-            IPaymentAllocationRepository paymentAllocationRepository)
+            IPaymentAllocationRepository paymentAllocationRepository,
+            IStudentFeeAssignmentRepository studentFeeAssignmentRepository)
         {
             _studentPaymentRepository =
                 studentPaymentRepository;
@@ -41,6 +45,9 @@ namespace AKLC.Application.Services
 
             _paymentAllocationRepository =
                 paymentAllocationRepository;
+
+            _studentFeeAssignmentRepository =
+                studentFeeAssignmentRepository;
         }
 
 
@@ -88,6 +95,35 @@ namespace AKLC.Application.Services
                 throw new InvalidOperationException(
                     "Payment cannot be received for an inactive student.");
             }
+
+
+            // =========================================
+            // CURRENT FINANCIAL POSITION
+            // BEFORE THIS NEW PAYMENT
+            // =========================================
+
+            var totalPayable =
+                await _studentFeeAssignmentRepository
+                    .GetTotalNetPayableAsync(
+                        student.Id,
+                        cancellationToken);
+
+            var totalValidPaid =
+                await _studentPaymentRepository
+                    .GetTotalValidPaidAsync(
+                        student.Id,
+                        cancellationToken);
+
+            var currentOutstanding =
+                Math.Max(
+                    totalPayable - totalValidPaid,
+                    0m);
+
+            var outstandingAfterPayment =
+                Math.Max(
+                    currentOutstanding - request.Amount,
+                    0m);
+
 
             var paymentDate =
                 request.PaymentDate == default
@@ -246,24 +282,25 @@ namespace AKLC.Application.Services
                         student.Id,
                         cancellationToken);
 
-            var remainingPaymentAmount =
-                payment.Amount;
-
-            foreach (
-                var schedule in schedules
+            var activeSchedules =
+                schedules
                     .Where(x =>
                         x.IsActive &&
                         !x.IsDeleted)
                     .OrderBy(x =>
                         x.DueDate)
                     .ThenBy(x =>
-                        x.CreatedAt))
-            {
-                if (remainingPaymentAmount <= 0)
-                {
-                    break;
-                }
+                        x.CreatedAt)
+                    .ToList();
 
+            var remainingPaymentAmount =
+                payment.Amount;
+
+            var remainingScheduledBalanceAfterPayment =
+                0m;
+
+            foreach (var schedule in activeSchedules)
+            {
                 var alreadyAllocatedAmount =
                     await _paymentAllocationRepository
                         .GetValidAllocatedAmountAsync(
@@ -271,8 +308,10 @@ namespace AKLC.Application.Services
                             cancellationToken);
 
                 var scheduleRemainingAmount =
-                    schedule.ScheduledAmount -
-                    alreadyAllocatedAmount;
+                    Math.Max(
+                        schedule.ScheduledAmount -
+                        alreadyAllocatedAmount,
+                        0m);
 
                 if (scheduleRemainingAmount <= 0)
                 {
@@ -280,42 +319,127 @@ namespace AKLC.Application.Services
                 }
 
                 var amountToAllocate =
-                    Math.Min(
-                        remainingPaymentAmount,
-                        scheduleRemainingAmount);
+                    remainingPaymentAmount > 0
+                        ? Math.Min(
+                            remainingPaymentAmount,
+                            scheduleRemainingAmount)
+                        : 0m;
 
-                if (amountToAllocate <= 0)
+                if (amountToAllocate > 0)
                 {
-                    continue;
+                    var allocation =
+                        new PaymentAllocation
+                        {
+                            Id =
+                                Guid.NewGuid(),
+
+                            StudentPaymentId =
+                                payment.Id,
+
+                            PaymentScheduleId =
+                                schedule.Id,
+
+                            AllocatedAmount =
+                                amountToAllocate,
+
+                            Remarks =
+                                "Auto allocated during payment receipt.",
+
+                            CreatedAt =
+                                DateTime.UtcNow
+                        };
+
+                    payment.Allocations.Add(
+                        allocation);
+
+                    remainingPaymentAmount -=
+                        amountToAllocate;
                 }
 
-                var allocation =
-                    new PaymentAllocation
+                remainingScheduledBalanceAfterPayment +=
+                    Math.Max(
+                        scheduleRemainingAmount -
+                        amountToAllocate,
+                        0m);
+            }
+
+
+            // =========================================
+            // CREATE NEXT PAYMENT SCHEDULE
+            //
+            // Only create a new schedule for the part
+            // of the remaining outstanding balance that
+            // is not already covered by an active
+            // payment schedule.
+            //
+            // The new payment is NOT allocated to this
+            // new schedule because it represents the
+            // future remaining balance.
+            // =========================================
+
+            var uncoveredOutstanding =
+                Math.Max(
+                    outstandingAfterPayment -
+                    remainingScheduledBalanceAfterPayment,
+                    0m);
+
+            if (uncoveredOutstanding > 0)
+            {
+                if (!request.NextPaymentDueDate.HasValue)
+                {
+                    throw new InvalidOperationException(
+                        "Next payment due date is required when a balance remains unpaid.");
+                }
+
+                var paymentBusinessDate =
+                    DateOnly.FromDateTime(
+                        paymentDate);
+
+                if (request.NextPaymentDueDate.Value <=
+                    paymentBusinessDate)
+                {
+                    throw new InvalidOperationException(
+                        "Next payment due date must be after the payment date.");
+                }
+
+                var nextSchedule =
+                    new PaymentSchedule
                     {
                         Id =
                             Guid.NewGuid(),
 
-                        StudentPaymentId =
-                            payment.Id,
+                        StudentId =
+                            student.Id,
 
-                        PaymentScheduleId =
-                            schedule.Id,
+                        StudentFeeAssignmentId =
+                            null,
 
-                        AllocatedAmount =
-                            amountToAllocate,
+                        Title =
+                            "Remaining Payment",
+
+                        ScheduledAmount =
+                            uncoveredOutstanding,
+
+                        DueDate =
+                            request.NextPaymentDueDate.Value,
 
                         Remarks =
-                            "Auto allocated during payment receipt.",
+                            "Automatically created for the remaining outstanding balance after partial payment.",
+
+                        IsActive =
+                            true,
+
+                        IsDeleted =
+                            false,
 
                         CreatedAt =
                             DateTime.UtcNow
                     };
 
-                payment.Allocations.Add(
-                    allocation);
-
-                remainingPaymentAmount -=
-                    amountToAllocate;
+                await _paymentScheduleRepository
+                    .AddAsync(
+                        nextSchedule,
+                        cancellationToken);
             }
 
 

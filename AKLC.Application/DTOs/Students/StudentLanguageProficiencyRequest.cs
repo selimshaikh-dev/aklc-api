@@ -1,0 +1,13 @@
+﻿namespace AKLC.Application.DTOs.Students
+{
+    public class StudentLanguageProficiencyRequest
+    {
+        public string LanguageName { get; set; } = string.Empty;
+
+        public string? ProficiencyLevel { get; set; }
+
+        public string? InstitutionName { get; set; }
+
+        public string? Remarks { get; set; }
+    }
+}
