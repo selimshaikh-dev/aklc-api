@@ -279,32 +279,29 @@ using (
 
 
 // =========================================================
-// DEVELOPMENT / SWAGGER
+// SWAGGER
+// =========================================================
+// Enabled in Production so the live API documentation
+// is available at /swagger.
 // =========================================================
 
-if (
-    app.Environment
-        .IsDevelopment()
-)
+app.UseSwagger();
+
+
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
+    options.SwaggerEndpoint(
+        "/swagger/v1/swagger.json",
+        "AKLC API v1");
 
 
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint(
-            "/swagger/v1/swagger.json",
-            "AKLC API v1");
+    options.RoutePrefix =
+        "swagger";
 
 
-        options.RoutePrefix =
-            "swagger";
-
-
-        options.DocumentTitle =
-            "AKLC API";
-    });
-}
+    options.DocumentTitle =
+        "AKLC API";
+});
 
 
 // =========================================================
