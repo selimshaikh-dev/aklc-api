@@ -84,6 +84,14 @@ namespace AKLC.Infrastructure.Persistence
 
 
         // =========================================
+        // VIDEOS
+        // =========================================
+
+        public DbSet<Video> Videos =>
+            Set<Video>();
+
+
+        // =========================================
         // MODEL CONFIGURATION
         // =========================================
 

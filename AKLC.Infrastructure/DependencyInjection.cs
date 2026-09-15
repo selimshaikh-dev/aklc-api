@@ -57,6 +57,15 @@ public static class DependencyInjection
 
 
         // =========================================
+        // VIDEO THUMBNAIL SERVICE
+        // =========================================
+
+        services.AddScoped<
+            IVideoThumbnailService,
+            VideoThumbnailService>();
+
+
+        // =========================================
         // JWT SETTINGS
         // =========================================
 
@@ -127,6 +136,7 @@ public static class DependencyInjection
             IAccountHeadRepository,
             AccountHeadRepository>();
 
+
         // =========================================
         // FEE TYPE REPOSITORY
         // =========================================
@@ -134,6 +144,16 @@ public static class DependencyInjection
         services.AddScoped<
             IFeeTypeRepository,
             FeeTypeRepository>();
+
+
+        // =========================================
+        // VIDEO REPOSITORY
+        // =========================================
+
+        services.AddScoped<
+            IVideoRepository,
+            VideoRepository>();
+
 
         // =========================================
         // INCOME TRANSACTION REPOSITORY
@@ -152,6 +172,7 @@ public static class DependencyInjection
             IExpenseTransactionRepository,
             ExpenseTransactionRepository>();
 
+
         // =========================================
         // PAYMENT SCHEDULE REPOSITORY
         // =========================================
@@ -160,6 +181,7 @@ public static class DependencyInjection
             IPaymentScheduleRepository,
             PaymentScheduleRepository>();
 
+
         // =========================================
         // PAYMENT ALLOCATION REPOSITORY
         // =========================================
@@ -167,6 +189,7 @@ public static class DependencyInjection
         services.AddScoped<
             IPaymentAllocationRepository,
             PaymentAllocationRepository>();
+
 
         // =========================================
         // ACCOUNT REPORT REPOSITORY

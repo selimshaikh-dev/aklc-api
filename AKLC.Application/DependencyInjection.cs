@@ -1,4 +1,5 @@
 ﻿using AKLC.Application.DTOs.Students;
+using AKLC.Application.DTOs.Videos;
 using AKLC.Application.Interfaces;
 using AKLC.Application.Services;
 using AKLC.Application.Validators;
@@ -39,6 +40,15 @@ namespace AKLC.Application
             services.AddScoped<
                 IFeeTypeService,
                 FeeTypeService>();
+
+
+            // =========================================
+            // VIDEO SERVICE
+            // =========================================
+
+            services.AddScoped<
+                IVideoService,
+                VideoService>();
 
 
             // =========================================
@@ -123,6 +133,19 @@ namespace AKLC.Application
             services.AddScoped<
                 IValidator<StudentLanguageProficiencyRequest>,
                 StudentLanguageProficiencyRequestValidator>();
+
+
+            // =========================================
+            // VIDEO VALIDATORS
+            // =========================================
+
+            services.AddScoped<
+                IValidator<CreateVideoRequest>,
+                CreateVideoRequestValidator>();
+
+            services.AddScoped<
+                IValidator<UpdateVideoRequest>,
+                UpdateVideoRequestValidator>();
 
 
             return services;

@@ -4,7 +4,23 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>beb510b4-9b5a-4c29-840b-2d5df757936c</UserSecretsId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Extensions\**" />
+    <Compile Remove="Middleware\**" />
+    <Compile Remove="Models\Payments\**" />
+    <Content Remove="Extensions\**" />
+    <Content Remove="Middleware\**" />
+    <Content Remove="Models\Payments\**" />
+    <EmbeddedResource Remove="Extensions\**" />
+    <EmbeddedResource Remove="Middleware\**" />
+    <EmbeddedResource Remove="Models\Payments\**" />
+    <None Remove="Extensions\**" />
+    <None Remove="Middleware\**" />
+    <None Remove="Models\Payments\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.11" />
@@ -19,12 +35,6 @@
   <ItemGroup>
     <ProjectReference Include="..\AKLC.Application\AKLC.Application.csproj" />
     <ProjectReference Include="..\AKLC.Infrastructure\AKLC.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Extensions\" />
-    <Folder Include="Middleware\" />
-    <Folder Include="Models\Payments\" />
   </ItemGroup>
 
 </Project>
